@@ -389,7 +389,6 @@ feature_matrix, feature_names = ft.dfs(entityset = es, target_entity = 'train',
                                        where_primitives = ['mean', 'sum'],
                                        seed_features = [late_payment, past_due],
                                        max_depth = 2, features_only = False, verbose = True,
-                                       n_jobs = 4,
                                        chunk_size = len(es['train'].df),
                                        ignore_entities = ['test'])
 
@@ -401,7 +400,6 @@ feature_matrix_test, feature_names_test = ft.dfs(entityset = es, target_entity =
                                                 where_primitives = ['mean', 'sum'],
                                                 seed_features = [late_payment, past_due],
                                                 max_depth = 2, features_only = False, verbose = True,
-                                                n_jobs = 4,
                                                 chunk_size = len(es['test'].df),
                                                 ignore_entities = ['train'])
 

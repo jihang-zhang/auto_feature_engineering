@@ -368,6 +368,22 @@ LongestSeq = make_agg_primitive(function = longest_repetition,
                                      input_types = [Discrete],
                                      return_type = Discrete)
 
+def most_recent(y, x):
+    df = pd.DataFrame({"x": x, "y": y}).dropna()
+            
+    if df.shape[0] < 1:
+        return np.nan
+
+    # Sort the values by timestamps reversed
+    df = df.sort_values('x', ascending = False).reset_index()
+
+    # Return the most recent occurence
+    return df.iloc[0]['y']
+
+MostRecent = make_agg_primitive(function = most_recent,
+                                input_types = [Discrete, Datetime],
+                                return_type = Discrete)
+
 # Late Payment seed feature
 late_payment = ft.Feature(es['install']['installments_due_date']) < ft.Feature(es['install']['installments_paid_date'])
 
@@ -384,23 +400,21 @@ es['prev']['NAME_CONTRACT_STATUS'].interesting_values = ['Approved', 'Refused', 
 # Run and create the features
 feature_matrix, feature_names = ft.dfs(entityset = es, target_entity = 'train',
                                        agg_primitives = ['mean', 'max', 'min', 'trend', 'mode', 'count',
-                                                         'sum', 'percent_true', NormalizedModeCount, LongestSeq],
+                                                         'sum', 'percent_true', NormalizedModeCount, MostRecent, LongestSeq],
                                        trans_primitives = ['diff', 'cum_sum', 'cum_mean', 'percentile'],
                                        where_primitives = ['mean', 'sum'],
                                        seed_features = [late_payment, past_due],
-                                       max_depth = 2, features_only = False, verbose = True,
-                                       chunk_size = len(es['train'].df),
+                                       max_depth = 1, features_only = False, verbose = True,
                                        ignore_entities = ['test'])
 
 # Run and create the features
 feature_matrix_test, feature_names_test = ft.dfs(entityset = es, target_entity = 'test',
                                                 agg_primitives = ['mean', 'max', 'min', 'trend', 'mode', 'count',
-                                                                    'sum', 'percent_true', NormalizedModeCount, LongestSeq],
+                                                                    'sum', 'percent_true', NormalizedModeCount, MostRecent, LongestSeq],
                                                 trans_primitives = ['diff', 'cum_sum', 'cum_mean', 'percentile'],
                                                 where_primitives = ['mean', 'sum'],
                                                 seed_features = [late_payment, past_due],
-                                                max_depth = 2, features_only = False, verbose = True,
-                                                chunk_size = len(es['test'].df),
+                                                max_depth = 1, features_only = False, verbose = True,
                                                 ignore_entities = ['train'])
 
 print('Final training shape: ', feature_matrix.shape)
